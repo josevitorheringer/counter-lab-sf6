@@ -43,35 +43,6 @@ exported again.
 The dummy character selected in Counter Lab must match the dummy loaded in Street Fighter 6
 Training Mode, otherwise the mod may refuse to apply the drill.
 
-## Development
-
-```bash
-npm install
-npm run dev
-```
-
-The local development URL is `http://localhost:5173/counter-lab-sf6/`.
-
-Run the project checks with:
-
-```bash
-npm run test:run
-npm run typecheck
-npm run build
-```
-
-## GitHub Pages
-
-The repository includes a GitHub Actions workflow that tests, builds, and publishes the app after
-every push to `main`. After pushing the repository to GitHub, open **Settings → Pages** and select
-**GitHub Actions** as the publishing source.
-
-The published URL follows this format:
-
-```text
-https://YOUR-USERNAME.github.io/counter-lab-sf6/
-```
-
 ## Acknowledgements
 
 Special thanks to [Higor](https://github.com/higorae), creator of SF6 Training Drill Share.
