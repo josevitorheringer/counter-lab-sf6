@@ -51,6 +51,7 @@ export type AppAction =
   | { type: "ADD_PRESET"; presetId: InputPresetId }
   | { type: "COPY_SLOT_TO"; targetIndex: number }
   | { type: "CLEAR_SLOT" }
+  | { type: "SET_SLOT_WEIGHT"; index: number; weight: number }
   | {
       type: "UPDATE_METADATA";
       changes: Partial<Pick<DrillDocument["metadata"], "title" | "author" | "description">>;

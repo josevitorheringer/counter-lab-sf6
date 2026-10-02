@@ -63,7 +63,9 @@ describe("App", () => {
     const firstTwoFrames = screen.getAllByText("4f")[0].closest("button");
     expect(firstTwoFrames).not.toBeNull();
     fireEvent.click(firstTwoFrames!);
-    fireEvent.change(screen.getByRole("spinbutton"), { target: { value: "6" } });
+    fireEvent.change(screen.getByRole("spinbutton", { name: "Duration in frames" }), {
+      target: { value: "6" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "Save block" }));
 
     expect(screen.getByText("26f · 0.43s")).toBeInTheDocument();
@@ -87,6 +89,15 @@ describe("App", () => {
 
     expect(screen.getByText("22")).toBeInTheDocument();
     expect(screen.getByLabelText("Dummy character")).toHaveValue("22");
+  });
+
+  it("changes the weight of an individual slot", () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "Load example" }));
+    const weight = screen.getByLabelText("Weight for Slot 1");
+    fireEvent.change(weight, { target: { value: "0" } });
+
+    expect(weight).toHaveValue(0);
   });
 
   it("opens import in a cancellable dialog without discarding the current drill", () => {

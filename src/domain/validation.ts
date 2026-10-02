@@ -90,8 +90,9 @@ function optionalInteger(
   fallback: number,
   label: string,
   minimum?: number,
+  maximum?: number,
 ): number {
-  return value === undefined ? fallback : requireInteger(value, label, minimum);
+  return value === undefined ? fallback : requireInteger(value, label, minimum, maximum);
 }
 
 function optionalBoolean(value: unknown, fallback: boolean, label: string): boolean {
@@ -285,9 +286,12 @@ function normalizeSlot(value: unknown, fallbackIndex: number): RecordingSlot {
   }
 
   const hasFrames = rawInputs.length > 0;
-  const weight = Math.max(
+  const weight = optionalInteger(
+    value.weight,
     1,
-    optionalInteger(value.weight, 1, `weight of Slot ${slotIndex}`, 0),
+    `weight of Slot ${slotIndex}`,
+    0,
+    10,
   );
 
   return {

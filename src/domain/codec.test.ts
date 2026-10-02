@@ -53,6 +53,14 @@ describe("SF6DRILL codec", () => {
     expect(second.action_record.slots[0].custom_slot_field).toBe("preserve");
   });
 
+  it("preserves a zero slot weight during a v2 round-trip", () => {
+    const fixture = createLongDrillFixture();
+    fixture.action_record.slots[0].weight = 0;
+
+    const imported = parseImport(exportV2(fixture)).document;
+    expect(imported.action_record.slots[0].weight).toBe(0);
+  });
+
   it("omits defaults and empty slots from the compact payload", () => {
     const code = exportV2(createLongDrillFixture());
     const payload = JSON.parse(

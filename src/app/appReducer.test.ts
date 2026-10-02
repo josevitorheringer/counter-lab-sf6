@@ -72,6 +72,21 @@ describe("appReducer", () => {
     expect(state.history.past).toHaveLength(0);
   });
 
+  it("updates a slot weight between zero and ten and supports undo", () => {
+    let state = appReducer(initialAppState, {
+      type: "IMPORT_DOCUMENT",
+      document: createLongDrillFixture(),
+    });
+    state = appReducer(state, { type: "SET_SLOT_WEIGHT", index: 0, weight: 0 });
+    expect(state.document?.action_record.slots[0].weight).toBe(0);
+
+    const unchanged = appReducer(state, { type: "SET_SLOT_WEIGHT", index: 0, weight: 11 });
+    expect(unchanged).toBe(state);
+
+    state = appReducer(state, { type: "UNDO" });
+    expect(state.document?.action_record.slots[0].weight).toBe(1);
+  });
+
   it("updates the dummy character and supports undo", () => {
     let state = appReducer(initialAppState, {
       type: "IMPORT_DOCUMENT",

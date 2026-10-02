@@ -30,7 +30,7 @@ describe("validation and normalization", () => {
       frame_count: 3,
       is_valid: true,
       state: 1,
-      weight: 1,
+      weight: 0,
       custom: "preserved",
     });
     expect(document.action_record.slots[7]).toMatchObject({
@@ -63,6 +63,16 @@ describe("validation and normalization", () => {
         training_settings: { drive_reversal_delay: 1.5 },
       }),
     ).toThrow(/integer/);
+  });
+
+  it("accepts slot weights from zero to ten and rejects larger values", () => {
+    expect(
+      normalizeDrill(minimumDrill([{ slot_index: 1, raw_inputs: [], weight: 10 }]))
+        .action_record.slots[0].weight,
+    ).toBe(10);
+    expect(() =>
+      normalizeDrill(minimumDrill([{ slot_index: 1, raw_inputs: [], weight: 11 }])),
+    ).toThrow(/at most 10/);
   });
 
   it("applies the minimum validation required by the mod", () => {

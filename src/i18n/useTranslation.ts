@@ -76,6 +76,8 @@ const PT: Record<string, string> = {
   "Clear slot": "Limpar slot",
   Recorded: "Gravado",
   Empty: "Vazio",
+  Weight: "Peso",
+  "Weight for Slot {number}": "Peso do Slot {number}",
   "Input sequence": "Sequência de inputs",
   Frames: "Frames",
   Time: "Tempo",

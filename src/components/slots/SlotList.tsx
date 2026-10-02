@@ -23,6 +23,7 @@ export function SlotList() {
             slot={slot}
             active={state.activeSlotIndex === index}
             onSelect={() => dispatch({ type: "SELECT_SLOT", index })}
+            onWeightChange={(weight) => dispatch({ type: "SET_SLOT_WEIGHT", index, weight })}
           />
         ))}
       </div>

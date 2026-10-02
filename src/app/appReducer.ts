@@ -181,6 +181,24 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           ),
         null,
       );
+    case "SET_SLOT_WEIGHT": {
+      if (
+        !Number.isInteger(action.weight) ||
+        action.weight < 0 ||
+        action.weight > 10 ||
+        action.index < 0 ||
+        action.index >= 8 ||
+        state.document?.action_record.slots[action.index]?.weight === action.weight
+      ) {
+        return state;
+      }
+      return withDocumentChange(state, (document) =>
+        updateActiveSlot(document, action.index, (slot) => ({
+          ...slot,
+          weight: action.weight,
+        })),
+      );
+    }
     case "UPDATE_METADATA":
       return withDocumentChange(state, (document) => ({
         ...document,
