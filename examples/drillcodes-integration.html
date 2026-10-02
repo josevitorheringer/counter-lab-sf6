@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DrillCodes integration simulator</title>
+    <style>
+      :root { color-scheme: light dark; font: 16px/1.5 system-ui, sans-serif; }
+      body { width: min(52rem, calc(100% - 2rem)); margin: 2rem auto; }
+      textarea, input { width: 100%; box-sizing: border-box; padding: .75rem; font: inherit; }
+      textarea { min-height: 14rem; font-family: ui-monospace, monospace; font-size: .8rem; }
+      button { margin: 1rem .5rem 1rem 0; padding: .65rem 1rem; font: inherit; cursor: pointer; }
+      pre { overflow-wrap: anywhere; white-space: pre-wrap; padding: 1rem; background: color-mix(in srgb, CanvasText 8%, Canvas); }
+      .note { opacity: .75; }
+    </style>
+  </head>
+  <body>
+    <h1>DrillCodes integration simulator</h1>
+    <p class="note">
+      This page acts as <code>drillcodes.com</code>. It opens Counter Lab, sends a drill after the
+      handshake, and displays the edited code received in return.
+    </p>
+
+    <label>
+      Counter Lab development URL
+      <input id="editor-url" value="http://127.0.0.1:5173/counter-lab-sf6/" />
+    </label>
+    <label>
+      Drill code or long-form JSON
+      <textarea id="drill">{
+  "version": 1,
+  "metadata": {
+    "title": "DrillCodes integration test",
+    "author": "Integration simulator",
+    "description": "Edit this drill and send it back to the simulator."
+  },
+  "compatibility": {
+    "dummy_character_id": 1,
+    "dummy_character_name": "Ryu"
+  },
+  "action_record": {
+    "slots": [
+      {
+        "slot_index": 1,
+        "raw_inputs": [2, 2, 10, 10, 8, 24, 24],
+        "weight": 1
+      }
+    ]
+  }
+}</textarea>
+    </label>
+
+    <button id="open" type="button">Open and send to Counter Lab</button>
+    <button id="send" type="button" disabled>Send drill again</button>
+
+    <h2>Status</h2>
+    <pre id="status">Waiting to start.</pre>
+    <h2>Code returned by Counter Lab</h2>
+    <textarea id="result" readonly placeholder="The exported SF6DRILL:v2 code will appear here."></textarea>
+
+    <script>
+      const protocol = "counter-lab";
+      const version = 1;
+      let editor = null;
+      let editorOrigin = null;
+      let channel = null;
+
+      const status = document.querySelector("#status");
+      const result = document.querySelector("#result");
+      const sendButton = document.querySelector("#send");
+
+      function log(message) {
+        status.textContent = message;
+      }
+
+      function sendDrill() {
+        if (!editor || editor.closed || !editorOrigin || !channel) return;
+        editor.postMessage(
+          {
+            protocol,
+            version,
+            type: "IMPORT_DRILL",
+            channel,
+            requestId: crypto.randomUUID(),
+            payload: {
+              drillId: "local-integration-test",
+              code: document.querySelector("#drill").value,
+            },
+          },
+          editorOrigin,
+        );
+        log("IMPORT_DRILL sent. Waiting for Counter Lab...");
+      }
+
+      window.addEventListener("message", (event) => {
+        if (!editor || event.source !== editor || event.origin !== editorOrigin) return;
+        const message = event.data;
+        if (
+          !message ||
+          message.protocol !== protocol ||
+          message.version !== version ||
+          message.channel !== channel
+        ) return;
+
+        if (message.type === "COUNTER_LAB_READY") {
+          sendButton.disabled = false;
+          log("COUNTER_LAB_READY received. Sending the drill now.");
+          sendDrill();
+        } else if (message.type === "IMPORT_ACCEPTED") {
+          log(`Import accepted: ${message.payload?.title ?? "untitled drill"}. Edit it and click “Send to DrillCodes”.`);
+        } else if (message.type === "IMPORT_REJECTED") {
+          log(`Import rejected: ${message.payload?.error ?? "unknown error"}`);
+        } else if (message.type === "IMPORT_CANCELLED") {
+          log("Import cancelled in Counter Lab.");
+        } else if (message.type === "EXPORT_DRILL") {
+          result.value = message.payload?.code ?? "";
+          log(`EXPORT_DRILL received: ${message.payload?.metadata?.title ?? "untitled drill"}.`);
+        }
+      });
+
+      document.querySelector("#open").addEventListener("click", () => {
+        const editorUrl = new URL(document.querySelector("#editor-url").value);
+        editorOrigin = editorUrl.origin;
+        channel = crypto.randomUUID();
+        editorUrl.searchParams.set("integration", "drillcodes");
+        editorUrl.searchParams.set("channel", channel);
+        editorUrl.searchParams.set("sourceOrigin", window.location.origin);
+        editor = window.open(editorUrl, "counter-lab");
+        if (!editor) {
+          log("The browser blocked the Counter Lab window. Allow popups and try again.");
+          return;
+        }
+        log("Counter Lab opened. Waiting for COUNTER_LAB_READY...");
+      });
+
+      sendButton.addEventListener("click", sendDrill);
+    </script>
+  </body>
+</html>

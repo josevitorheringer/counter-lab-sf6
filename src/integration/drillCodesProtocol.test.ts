@@ -7,29 +7,36 @@ import {
 } from "./drillCodesProtocol";
 
 describe("DrillCodes integration protocol", () => {
-  it("accepts the production origin and a valid channel", () => {
+  it("accepts HTTPS origins and a valid channel", () => {
     expect(
       readDrillCodesIntegrationConfig(
         "?integration=drillcodes&channel=channel_123&sourceOrigin=https%3A%2F%2Fdrillcodes.com",
         false,
       ),
     ).toEqual({ channel: "channel_123", sourceOrigin: "https://drillcodes.com" });
+
+    expect(
+      readDrillCodesIntegrationConfig(
+        "?integration=drillcodes&channel=channel_123&sourceOrigin=https%3A%2F%2Fcommunity.example",
+        false,
+      ),
+    ).toEqual({ channel: "channel_123", sourceOrigin: "https://community.example" });
   });
 
-  it("only accepts local simulator origins during development", () => {
+  it("only accepts HTTP local origins during development", () => {
     const search =
-      "?integration=drillcodes&channel=channel_123&sourceOrigin=http%3A%2F%2F127.0.0.1%3A4174";
+      "?integration=drillcodes&channel=channel_123&sourceOrigin=http%3A%2F%2F127.0.0.1%3A5123";
     expect(readDrillCodesIntegrationConfig(search, false)).toBeNull();
     expect(readDrillCodesIntegrationConfig(search, true)).toEqual({
       channel: "channel_123",
-      sourceOrigin: "http://127.0.0.1:4174",
+      sourceOrigin: "http://127.0.0.1:5123",
     });
   });
 
-  it("rejects untrusted origins, invalid channels, and unrelated messages", () => {
+  it("rejects insecure remote origins, invalid channels, and unrelated messages", () => {
     expect(
       readDrillCodesIntegrationConfig(
-        "?integration=drillcodes&channel=channel_123&sourceOrigin=https%3A%2F%2Fevil.example",
+        "?integration=drillcodes&channel=channel_123&sourceOrigin=http%3A%2F%2Fcommunity.example",
         true,
       ),
     ).toBeNull();

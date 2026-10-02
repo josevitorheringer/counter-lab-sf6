@@ -16,18 +16,19 @@ export type DrillCodesMessage = {
   payload?: unknown;
 };
 
-const PRODUCTION_ORIGINS = new Set([
-  "https://drillcodes.com",
-  "https://www.drillcodes.com",
-]);
-
-const DEVELOPMENT_ORIGINS = new Set([
-  "http://127.0.0.1:4174",
-  "http://localhost:4174",
-]);
-
 export function isAllowedDrillCodesOrigin(origin: string, development: boolean): boolean {
-  return PRODUCTION_ORIGINS.has(origin) || (development && DEVELOPMENT_ORIGINS.has(origin));
+  try {
+    const url = new URL(origin);
+    if (url.origin !== origin || url.username || url.password) return false;
+    if (url.protocol === "https:") return true;
+    return (
+      development &&
+      url.protocol === "http:" &&
+      (url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "[::1]")
+    );
+  } catch {
+    return false;
+  }
 }
 
 export function readDrillCodesIntegrationConfig(
