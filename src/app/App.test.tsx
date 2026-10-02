@@ -1,12 +1,21 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it } from "vitest";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { App } from "./App";
 import { exportV2 } from "../domain/codec";
 import { createLongDrillFixture } from "../test/fixtures";
 
 describe("App", () => {
-  beforeEach(() => localStorage.clear());
+  beforeEach(() => {
+    localStorage.clear();
+    window.history.replaceState({}, "", "/");
+    Object.defineProperty(window, "opener", { configurable: true, value: null });
+  });
+
+  afterEach(() => {
+    window.history.replaceState({}, "", "/");
+    Object.defineProperty(window, "opener", { configurable: true, value: null });
+  });
 
   it("opens in the import flow", () => {
     render(<App />);
@@ -139,5 +148,60 @@ describe("App", () => {
 
     expect(screen.queryByRole("dialog", { name: "Import another drill" })).not.toBeInTheDocument();
     expect(screen.getByText("Hadoken — medium pressure")).toBeInTheDocument();
+  });
+
+  it("imports from and exports to a trusted DrillCodes opener", async () => {
+    const postMessage = vi.fn();
+    const opener = { postMessage, closed: false } as unknown as Window;
+    Object.defineProperty(window, "opener", { configurable: true, value: opener });
+    window.history.replaceState(
+      {},
+      "",
+      "/?integration=drillcodes&channel=channel_123&sourceOrigin=http%3A%2F%2F127.0.0.1%3A4174",
+    );
+
+    render(<App />);
+    await waitFor(() =>
+      expect(postMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ type: "COUNTER_LAB_READY", channel: "channel_123" }),
+        "http://127.0.0.1:4174",
+      ),
+    );
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          origin: "http://127.0.0.1:4174",
+          source: opener,
+          data: {
+            protocol: "counter-lab",
+            version: 1,
+            type: "IMPORT_DRILL",
+            channel: "channel_123",
+            requestId: "request_123",
+            payload: {
+              drillId: "drill_123",
+              code: exportV2(createLongDrillFixture()),
+            },
+          },
+        }),
+      );
+    });
+
+    expect(await screen.findByText("Drill imported from DrillCodes.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Send to DrillCodes" }));
+
+    expect(postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "EXPORT_DRILL",
+        channel: "channel_123",
+        payload: expect.objectContaining({
+          sourceDrillId: "drill_123",
+          code: expect.stringMatching(/^SF6DRILL:v2:/),
+        }),
+      }),
+      "http://127.0.0.1:4174",
+    );
+    expect(screen.getByText("Drill sent to DrillCodes.")).toBeInTheDocument();
   });
 });

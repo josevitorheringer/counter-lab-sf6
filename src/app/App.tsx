@@ -11,6 +11,7 @@ import { SlotList } from "../components/slots/SlotList";
 import { Timeline } from "../components/timeline/Timeline";
 import { useKeyboardShortcuts } from "../hooks/useKeyboardShortcuts";
 import { useLocalDraft } from "../hooks/useLocalDraft";
+import { useDrillCodesIntegration } from "../hooks/useDrillCodesIntegration";
 import { NotationProvider } from "../notation/NotationProvider";
 import { AppProvider, useApp } from "./AppProvider";
 
@@ -20,6 +21,7 @@ function AppContent() {
   const [importOpen, setImportOpen] = useState(false);
   useLocalDraft(state, dispatch);
   useKeyboardShortcuts(state, dispatch);
+  const drillCodes = useDrillCodesIntegration(state, dispatch);
 
   useEffect(() => {
     document.documentElement.dataset.colorMode = state.preferences.colorMode;
@@ -41,7 +43,12 @@ function AppContent() {
   return (
     <NotationProvider themeId={state.preferences.notationTheme}>
       <AppShell>
-        <AppHeader onImport={() => setImportOpen(true)} onExport={() => setExportOpen(true)} />
+        <AppHeader
+          onImport={() => setImportOpen(true)}
+          onExport={() => setExportOpen(true)}
+          onSendToDrillCodes={drillCodes.canSend ? drillCodes.sendToDrillCodes : undefined}
+          integrationStatus={drillCodes.active ? drillCodes.statusMessage : undefined}
+        />
         {state.document ? (
           <main className="workspace">
             <SlotList />

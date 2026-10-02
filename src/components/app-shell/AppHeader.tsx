@@ -4,9 +4,13 @@ import { useTranslation } from "../../i18n/useTranslation";
 export function AppHeader({
   onImport,
   onExport,
+  onSendToDrillCodes,
+  integrationStatus,
 }: {
   onImport?: () => void;
   onExport?: () => void;
+  onSendToDrillCodes?: () => void;
+  integrationStatus?: string;
 }) {
   const { state, dispatch } = useApp();
   const { t } = useTranslation();
@@ -14,6 +18,7 @@ export function AppHeader({
     <header className="app-header">
       <span className="brand-button">Counter Lab</span>
       {state.document && <span className="header-title">{state.document.metadata.title}</span>}
+      {integrationStatus && <span className="integration-status" aria-live="polite">{integrationStatus}</span>}
       <div className="header-controls">
         <label>
           <span className="sr-only">{t("Notation")}</span>
@@ -58,6 +63,11 @@ export function AppHeader({
         </label>
         {state.document && (
           <>
+            {onSendToDrillCodes && (
+              <button type="button" className="button-secondary" onClick={onSendToDrillCodes}>
+                {t("Send to DrillCodes")}
+              </button>
+            )}
             <button type="button" className="button-secondary" onClick={onImport}>
               {t("Import")}
             </button>
