@@ -64,6 +64,7 @@
       let editor = null;
       let editorOrigin = null;
       let channel = null;
+      let readyTimeout = null;
 
       const status = document.querySelector("#status");
       const result = document.querySelector("#result");
@@ -103,6 +104,7 @@
         ) return;
 
         if (message.type === "COUNTER_LAB_READY") {
+          clearTimeout(readyTimeout);
           sendButton.disabled = false;
           log("COUNTER_LAB_READY received. Sending the drill now.");
           sendDrill();
@@ -119,6 +121,10 @@
       });
 
       document.querySelector("#open").addEventListener("click", () => {
+        if (window.location.protocol === "file:") {
+          log("This simulator cannot run as a file:// page. Serve the examples folder on localhost as described in the README.");
+          return;
+        }
         const editorUrl = new URL(document.querySelector("#editor-url").value);
         editorOrigin = editorUrl.origin;
         channel = crypto.randomUUID();
@@ -131,6 +137,10 @@
           return;
         }
         log("Counter Lab opened. Waiting for COUNTER_LAB_READY...");
+        clearTimeout(readyTimeout);
+        readyTimeout = setTimeout(() => {
+          log("No COUNTER_LAB_READY message was received. Confirm that this simulator is served on localhost and that the deployed Counter Lab includes the latest integration build.");
+        }, 5000);
       });
 
       sendButton.addEventListener("click", sendDrill);

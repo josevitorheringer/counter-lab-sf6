@@ -16,13 +16,12 @@ export type DrillCodesMessage = {
   payload?: unknown;
 };
 
-export function isAllowedDrillCodesOrigin(origin: string, development: boolean): boolean {
+export function isAllowedDrillCodesOrigin(origin: string, _development: boolean): boolean {
   try {
     const url = new URL(origin);
     if (url.origin !== origin || url.username || url.password) return false;
     if (url.protocol === "https:") return true;
     return (
-      development &&
       url.protocol === "http:" &&
       (url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "[::1]")
     );

@@ -23,10 +23,13 @@ describe("DrillCodes integration protocol", () => {
     ).toEqual({ channel: "channel_123", sourceOrigin: "https://community.example" });
   });
 
-  it("only accepts HTTP local origins during development", () => {
+  it("accepts HTTP loopback origins when testing a production build", () => {
     const search =
       "?integration=drillcodes&channel=channel_123&sourceOrigin=http%3A%2F%2F127.0.0.1%3A5123";
-    expect(readDrillCodesIntegrationConfig(search, false)).toBeNull();
+    expect(readDrillCodesIntegrationConfig(search, false)).toEqual({
+      channel: "channel_123",
+      sourceOrigin: "http://127.0.0.1:5123",
+    });
     expect(readDrillCodesIntegrationConfig(search, true)).toEqual({
       channel: "channel_123",
       sourceOrigin: "http://127.0.0.1:5123",
@@ -37,6 +40,12 @@ describe("DrillCodes integration protocol", () => {
     expect(
       readDrillCodesIntegrationConfig(
         "?integration=drillcodes&channel=channel_123&sourceOrigin=http%3A%2F%2Fcommunity.example",
+        true,
+      ),
+    ).toBeNull();
+    expect(
+      readDrillCodesIntegrationConfig(
+        "?integration=drillcodes&channel=channel_123&sourceOrigin=http%3A%2F%2F192.168.1.10%3A4174",
         true,
       ),
     ).toBeNull();
