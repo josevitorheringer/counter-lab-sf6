@@ -46,7 +46,6 @@ function AppContent() {
         <AppHeader
           onImport={() => setImportOpen(true)}
           onExport={() => setExportOpen(true)}
-          onSendToDrillCodes={drillCodes.canSend ? drillCodes.sendToDrillCodes : undefined}
           integrationStatus={drillCodes.active ? drillCodes.statusMessage : undefined}
         />
         {state.document ? (

@@ -150,7 +150,7 @@ describe("App", () => {
     expect(screen.getByText("Hadoken — medium pressure")).toBeInTheDocument();
   });
 
-  it("imports from and exports to a trusted DrillCodes opener", async () => {
+  it("imports from a trusted DrillCodes opener", async () => {
     const postMessage = vi.fn();
     const opener = { postMessage, closed: false } as unknown as Window;
     Object.defineProperty(window, "opener", { configurable: true, value: opener });
@@ -189,19 +189,14 @@ describe("App", () => {
     });
 
     expect(await screen.findByText("Drill imported from DrillCodes.")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Send to DrillCodes" }));
-
     expect(postMessage).toHaveBeenCalledWith(
       expect.objectContaining({
-        type: "EXPORT_DRILL",
+        type: "IMPORT_ACCEPTED",
         channel: "channel_123",
-        payload: expect.objectContaining({
-          sourceDrillId: "drill_123",
-          code: expect.stringMatching(/^SF6DRILL:v2:/),
-        }),
+        requestId: "request_123",
       }),
       "http://127.0.0.1:4174",
     );
-    expect(screen.getByText("Drill sent to DrillCodes.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Send to DrillCodes" })).not.toBeInTheDocument();
   });
 });

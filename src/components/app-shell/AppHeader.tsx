@@ -4,12 +4,10 @@ import { useTranslation } from "../../i18n/useTranslation";
 export function AppHeader({
   onImport,
   onExport,
-  onSendToDrillCodes,
   integrationStatus,
 }: {
   onImport?: () => void;
   onExport?: () => void;
-  onSendToDrillCodes?: () => void;
   integrationStatus?: string;
 }) {
   const { state, dispatch } = useApp();
@@ -63,11 +61,6 @@ export function AppHeader({
         </label>
         {state.document && (
           <>
-            {onSendToDrillCodes && (
-              <button type="button" className="button-secondary" onClick={onSendToDrillCodes}>
-                {t("Send to DrillCodes")}
-              </button>
-            )}
             <button type="button" className="button-secondary" onClick={onImport}>
               {t("Import")}
             </button>
