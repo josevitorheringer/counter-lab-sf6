@@ -172,7 +172,8 @@ describe("App", () => {
 
   it("imports from and exports to a trusted DrillCodes opener", async () => {
     const postMessage = vi.fn();
-    const opener = { postMessage, closed: false } as unknown as Window;
+    const focus = vi.fn();
+    const opener = { postMessage, focus, closed: false } as unknown as Window;
     Object.defineProperty(window, "opener", { configurable: true, value: opener });
     window.history.replaceState(
       {},
@@ -236,5 +237,6 @@ describe("App", () => {
       "http://127.0.0.1:4174",
     );
     expect(screen.getByText("Sent! Continue on DrillCodes.")).toBeInTheDocument();
+    expect(focus).toHaveBeenCalledOnce();
   });
 });

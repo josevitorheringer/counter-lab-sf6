@@ -141,6 +141,7 @@ export function useDrillCodesIntegration(
       }),
       config.sourceOrigin,
     );
+    opener.focus();
     setStatus("sent");
   }, [config, sourceDrillId, state.document]);
 
