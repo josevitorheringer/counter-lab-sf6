@@ -77,7 +77,7 @@ export function useDrillCodesIntegration(
 
       if (
         documentRef.current &&
-        !window.confirm(translateRef.current("Replace the current drill with the one from DrillCodes?"))
+        !window.confirm(translateRef.current("Replace the current drill with the one from drillcodes?"))
       ) {
         send("IMPORT_CANCELLED", { requestId: event.data.requestId });
         return;
@@ -154,13 +154,13 @@ export function useDrillCodesIntegration(
     status,
     statusMessage:
       status === "imported"
-        ? t("Drill imported from DrillCodes.")
+        ? t("Drill imported from drillcodes.")
         : status === "sent"
-          ? t("Sent! Continue on DrillCodes.")
+          ? t("Sent! Continue on drillcodes.")
           : status === "too-large"
-            ? t("This drill is too large to send to DrillCodes.")
+            ? t("This drill is too large to send to drillcodes.")
             : status === "error"
-              ? t("The DrillCodes connection is unavailable.")
+              ? t("The drillcodes connection is unavailable.")
               : "",
     sendToDrillCodes,
   };

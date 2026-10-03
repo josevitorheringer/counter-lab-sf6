@@ -213,7 +213,7 @@ describe("App", () => {
       );
     });
 
-    expect(await screen.findByText("Drill imported from DrillCodes.")).toBeInTheDocument();
+    expect(await screen.findByText("Drill imported from drillcodes.")).toBeInTheDocument();
     expect(postMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         type: "IMPORT_ACCEPTED",
@@ -222,7 +222,9 @@ describe("App", () => {
       }),
       "http://127.0.0.1:4174",
     );
-    fireEvent.click(screen.getByRole("button", { name: "Send to DrillCodes" }));
+    expect(screen.getByRole("button", { name: "Send to drillcodes" })).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText("Language"), { target: { value: "pt-BR" } });
+    fireEvent.click(screen.getByRole("button", { name: "Enviar ao drillcodes" }));
 
     expect(postMessage).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -236,7 +238,7 @@ describe("App", () => {
       }),
       "http://127.0.0.1:4174",
     );
-    expect(screen.getByText("Sent! Continue on DrillCodes.")).toBeInTheDocument();
+    expect(screen.getByText("Enviado! Continue no drillcodes.")).toBeInTheDocument();
     expect(focus).toHaveBeenCalledOnce();
   });
 });

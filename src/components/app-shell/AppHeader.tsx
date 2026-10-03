@@ -65,7 +65,7 @@ export function AppHeader({
           <>
             {onSendToDrillCodes && (
               <button type="button" className="button-secondary" onClick={onSendToDrillCodes}>
-                {t("Send to DrillCodes")}
+                {t("Send to drillcodes")}
               </button>
             )}
             <button type="button" className="button-secondary" onClick={onImport}>
