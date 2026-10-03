@@ -226,6 +226,13 @@ describe("App", () => {
     fireEvent.change(screen.getByLabelText("Language"), { target: { value: "pt-BR" } });
     fireEvent.click(screen.getByRole("button", { name: "Enviar ao drillcodes" }));
 
+    expect(screen.getByRole("dialog", { name: "Enviar ao drillcodes" })).toBeInTheDocument();
+    expect(screen.getByText("Mantenha a aba original do drillcodes aberta.")).toBeInTheDocument();
+    expect(
+      postMessage.mock.calls.some(([message]) => message.type === "EXPORT_DRILL"),
+    ).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Enviar e voltar ao drillcodes" }));
+
     expect(postMessage).toHaveBeenCalledWith(
       expect.objectContaining({
         type: "EXPORT_DRILL",
@@ -239,6 +246,7 @@ describe("App", () => {
       "http://127.0.0.1:4174",
     );
     expect(screen.getByText("Enviado! Continue no drillcodes.")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog", { name: "Enviar ao drillcodes" })).not.toBeInTheDocument();
     expect(focus).toHaveBeenCalledOnce();
   });
 });

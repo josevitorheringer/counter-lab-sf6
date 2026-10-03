@@ -5,6 +5,7 @@ import { InputEditor } from "../components/editor/InputEditor";
 import { ExportDialog } from "../components/export/ExportDialog";
 import { ImportPanel } from "../components/import/ImportPanel";
 import { ImportDialog } from "../components/import/ImportDialog";
+import { DrillcodesSendDialog } from "../components/integration/DrillcodesSendDialog";
 import { AppHeader } from "../components/app-shell/AppHeader";
 import { AppShell } from "../components/app-shell/AppShell";
 import { SlotList } from "../components/slots/SlotList";
@@ -19,6 +20,7 @@ function AppContent() {
   const { state, dispatch } = useApp();
   const [exportOpen, setExportOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [drillcodesSendOpen, setDrillcodesSendOpen] = useState(false);
   useLocalDraft(state, dispatch);
   useKeyboardShortcuts(state, dispatch);
   const drillCodes = useDrillCodesIntegration(state, dispatch);
@@ -34,6 +36,7 @@ function AppContent() {
       if (event.key === "Escape") {
         setExportOpen(false);
         setImportOpen(false);
+        setDrillcodesSendOpen(false);
       }
     };
     document.addEventListener("keydown", close);
@@ -46,7 +49,7 @@ function AppContent() {
         <AppHeader
           onImport={() => setImportOpen(true)}
           onExport={() => setExportOpen(true)}
-          onSendToDrillCodes={drillCodes.canSend ? drillCodes.sendToDrillCodes : undefined}
+          onSendToDrillCodes={drillCodes.canSend ? () => setDrillcodesSendOpen(true) : undefined}
           integrationStatus={drillCodes.active ? drillCodes.statusMessage : undefined}
         />
         {state.document ? (
@@ -63,6 +66,14 @@ function AppContent() {
         )}
         <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} />
         <ImportDialog open={importOpen} onClose={() => setImportOpen(false)} />
+        <DrillcodesSendDialog
+          open={drillcodesSendOpen}
+          onClose={() => setDrillcodesSendOpen(false)}
+          onConfirm={() => {
+            setDrillcodesSendOpen(false);
+            drillCodes.sendToDrillCodes();
+          }}
+        />
       </AppShell>
     </NotationProvider>
   );

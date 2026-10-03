@@ -667,7 +667,8 @@ select {
 }
 
 .export-dialog,
-.import-dialog {
+.import-dialog,
+.integration-dialog {
   width: min(100%, 46rem);
   max-height: calc(100vh - 2rem);
   overflow: auto;
@@ -679,6 +680,10 @@ select {
 
 .import-dialog {
   width: min(100%, 42rem);
+}
+
+.integration-dialog {
+  width: min(100%, 32rem);
 }
 
 .import-panel-dialog {
