@@ -16,10 +16,10 @@ export const initialAppState: AppState = {
   selectedBlockIndex: null,
   history: { past: [], future: [] },
   preferences: {
-    notationTheme: "numpad",
+    notationTheme: "sf6",
     colorMode: "system",
     timelineZoom: 100,
-    language: "en",
+    language: "pt-BR",
   },
   importError: null,
 };

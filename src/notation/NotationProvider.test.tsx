@@ -11,14 +11,14 @@ describe("notation themes", () => {
         <InputNotation mask={130} />
       </NotationProvider></AppProvider>,
     );
-    expect(screen.getByLabelText("Down + light kick")).toBeInTheDocument();
+    expect(screen.getByLabelText("Baixo + chute leve")).toBeInTheDocument();
 
     rerender(
       <AppProvider><NotationProvider themeId="sf6">
         <InputNotation mask={130} />
       </NotationProvider></AppProvider>,
     );
-    expect(screen.getByLabelText("Down + light kick")).toBeInTheDocument();
+    expect(screen.getByLabelText("Baixo + chute leve")).toBeInTheDocument();
   });
 
   it("keeps a textual strength identifier in the SF6 theme", () => {

@@ -1,6 +1,7 @@
 export const DRILL_CODES_PROTOCOL = "counter-lab";
 export const DRILL_CODES_PROTOCOL_VERSION = 1;
 export const MAX_INTEGRATION_CODE_LENGTH = 10_000_000;
+export const MAX_DRILL_CODES_EXPORT_LENGTH = 100_000;
 
 export type DrillCodesIntegrationConfig = {
   channel: string;
@@ -16,13 +17,15 @@ export type DrillCodesMessage = {
   payload?: unknown;
 };
 
+const DRILL_CODES_ORIGINS = new Set(["https://drillcodes.com"]);
+
 export function isAllowedDrillCodesOrigin(origin: string, _development: boolean): boolean {
   try {
     const url = new URL(origin);
     if (url.origin !== origin || url.username || url.password) return false;
-    if (url.protocol === "https:") return true;
+    if (DRILL_CODES_ORIGINS.has(origin)) return true;
     return (
-      url.protocol === "http:" &&
+      (url.protocol === "http:" || url.protocol === "https:") &&
       (url.hostname === "localhost" || url.hostname === "127.0.0.1" || url.hostname === "[::1]")
     );
   } catch {
@@ -55,6 +58,10 @@ export function isDrillCodesMessage(value: unknown, channel: string): value is D
     typeof message.type === "string" &&
     (message.requestId === undefined || typeof message.requestId === "string")
   );
+}
+
+export function isValidDrillCodesExportCode(code: string): boolean {
+  return code.length > 0 && code.length <= MAX_DRILL_CODES_EXPORT_LENGTH;
 }
 
 export function createDrillCodesMessage(

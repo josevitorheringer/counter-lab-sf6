@@ -1,16 +1,17 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import type { AppAction, AppState } from "../app/appTypes";
-import { parseImport } from "../domain/codec";
+import { exportV2, parseImport } from "../domain/codec";
 import {
   createDrillCodesMessage,
   isDrillCodesMessage,
+  isValidDrillCodesExportCode,
   MAX_INTEGRATION_CODE_LENGTH,
   readDrillCodesIntegrationConfig,
 } from "../integration/drillCodesProtocol";
 import { useTranslation } from "../i18n/useTranslation";
 
-type IntegrationStatus = "inactive" | "waiting" | "imported" | "error";
+type IntegrationStatus = "inactive" | "waiting" | "imported" | "sent" | "error" | "too-large";
 
 type ImportPayload = {
   code: string;
@@ -35,6 +36,7 @@ export function useDrillCodesIntegration(
     [],
   );
   const [status, setStatus] = useState<IntegrationStatus>(config ? "waiting" : "inactive");
+  const [sourceDrillId, setSourceDrillId] = useState<string | undefined>();
   const documentRef = useRef(state.document);
   const translateRef = useRef(t);
 
@@ -84,6 +86,7 @@ export function useDrillCodesIntegration(
       try {
         const result = parseImport(payload.code);
         dispatch({ type: "IMPORT_DOCUMENT", document: result.document });
+        setSourceDrillId(payload.drillId);
         setStatus("imported");
         send("IMPORT_ACCEPTED", {
           requestId: event.data.requestId,
@@ -103,21 +106,61 @@ export function useDrillCodesIntegration(
     window.addEventListener("message", receive);
     send("COUNTER_LAB_READY", {
       payload: {
-        capabilities: ["IMPORT_DRILL"],
+        capabilities: ["IMPORT_DRILL", "EXPORT_DRILL"],
         maxCodeLength: MAX_INTEGRATION_CODE_LENGTH,
       },
     });
     return () => window.removeEventListener("message", receive);
   }, [config, dispatch]);
 
+  const sendToDrillCodes = useCallback(() => {
+    const opener = window.opener;
+    if (!config || !state.document || !opener || opener.closed) {
+      setStatus("error");
+      return;
+    }
+
+    const code = exportV2(state.document);
+    if (!isValidDrillCodesExportCode(code)) {
+      setStatus("too-large");
+      return;
+    }
+
+    opener.postMessage(
+      createDrillCodesMessage("EXPORT_DRILL", config.channel, {
+        requestId: crypto.randomUUID(),
+        payload: {
+          sourceDrillId,
+          code,
+          metadata: {
+            title: state.document.metadata.title.slice(0, 120),
+            author: (state.document.metadata.author ?? "").slice(0, 120),
+            description: (state.document.metadata.description ?? "").slice(0, 2_000),
+          },
+        },
+      }),
+      config.sourceOrigin,
+    );
+    setStatus("sent");
+  }, [config, sourceDrillId, state.document]);
+
   return {
     active: config !== null,
+    canSend:
+      config !== null &&
+      state.document !== null &&
+      (status === "imported" || status === "sent" || status === "too-large"),
     status,
     statusMessage:
       status === "imported"
         ? t("Drill imported from DrillCodes.")
-        : status === "error"
-          ? t("The DrillCodes connection is unavailable.")
-          : "",
+        : status === "sent"
+          ? t("Sent! Continue on DrillCodes.")
+          : status === "too-large"
+            ? t("This drill is too large to send to DrillCodes.")
+            : status === "error"
+              ? t("The DrillCodes connection is unavailable.")
+              : "",
+    sendToDrillCodes,
   };
 }

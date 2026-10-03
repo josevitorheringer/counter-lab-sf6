@@ -8,8 +8,28 @@ import { createLongDrillFixture } from "../test/fixtures";
 describe("App", () => {
   beforeEach(() => {
     localStorage.clear();
+    localStorage.setItem(
+      "counter-lab:preferences:v1",
+      JSON.stringify({
+        notationTheme: "numpad",
+        colorMode: "system",
+        timelineZoom: 100,
+        language: "en",
+      }),
+    );
     window.history.replaceState({}, "", "/");
     Object.defineProperty(window, "opener", { configurable: true, value: null });
+  });
+
+  it("uses Portuguese and SF6 visual notation by default", () => {
+    localStorage.clear();
+    render(<App />);
+
+    expect(screen.getByRole("heading", { name: "Importar drill" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Idioma")).toHaveValue("pt-BR");
+    expect(screen.getByLabelText("Notação")).toHaveValue("sf6");
+    expect(document.documentElement.lang).toBe("pt-BR");
+    expect(document.documentElement.dataset.notation).toBe("sf6");
   });
 
   afterEach(() => {
@@ -150,7 +170,7 @@ describe("App", () => {
     expect(screen.getByText("Hadoken — medium pressure")).toBeInTheDocument();
   });
 
-  it("imports from a trusted DrillCodes opener", async () => {
+  it("imports from and exports to a trusted DrillCodes opener", async () => {
     const postMessage = vi.fn();
     const opener = { postMessage, closed: false } as unknown as Window;
     Object.defineProperty(window, "opener", { configurable: true, value: opener });
@@ -163,7 +183,11 @@ describe("App", () => {
     render(<App />);
     await waitFor(() =>
       expect(postMessage).toHaveBeenCalledWith(
-        expect.objectContaining({ type: "COUNTER_LAB_READY", channel: "channel_123" }),
+        expect.objectContaining({
+          type: "COUNTER_LAB_READY",
+          channel: "channel_123",
+          payload: expect.objectContaining({ capabilities: ["IMPORT_DRILL", "EXPORT_DRILL"] }),
+        }),
         "http://127.0.0.1:4174",
       ),
     );
@@ -197,6 +221,20 @@ describe("App", () => {
       }),
       "http://127.0.0.1:4174",
     );
-    expect(screen.queryByRole("button", { name: "Send to DrillCodes" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Send to DrillCodes" }));
+
+    expect(postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "EXPORT_DRILL",
+        channel: "channel_123",
+        payload: expect.objectContaining({
+          sourceDrillId: "drill_123",
+          code: expect.stringMatching(/^SF6DRILL:v2:/),
+          metadata: expect.objectContaining({ title: "Hadoken — medium pressure" }),
+        }),
+      }),
+      "http://127.0.0.1:4174",
+    );
+    expect(screen.getByText("Sent! Continue on DrillCodes.")).toBeInTheDocument();
   });
 });

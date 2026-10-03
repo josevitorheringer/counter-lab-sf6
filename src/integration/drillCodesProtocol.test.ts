@@ -3,11 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   createDrillCodesMessage,
   isDrillCodesMessage,
+  isValidDrillCodesExportCode,
   readDrillCodesIntegrationConfig,
 } from "./drillCodesProtocol";
 
 describe("DrillCodes integration protocol", () => {
-  it("accepts HTTPS origins and a valid channel", () => {
+  it("accepts the known production origin and a valid channel", () => {
     expect(
       readDrillCodesIntegrationConfig(
         "?integration=drillcodes&channel=channel_123&sourceOrigin=https%3A%2F%2Fdrillcodes.com",
@@ -15,12 +16,6 @@ describe("DrillCodes integration protocol", () => {
       ),
     ).toEqual({ channel: "channel_123", sourceOrigin: "https://drillcodes.com" });
 
-    expect(
-      readDrillCodesIntegrationConfig(
-        "?integration=drillcodes&channel=channel_123&sourceOrigin=https%3A%2F%2Fcommunity.example",
-        false,
-      ),
-    ).toEqual({ channel: "channel_123", sourceOrigin: "https://community.example" });
   });
 
   it("accepts HTTP loopback origins when testing a production build", () => {
@@ -36,7 +31,13 @@ describe("DrillCodes integration protocol", () => {
     });
   });
 
-  it("rejects insecure remote origins, invalid channels, and unrelated messages", () => {
+  it("rejects unknown remote origins, invalid channels, and unrelated messages", () => {
+    expect(
+      readDrillCodesIntegrationConfig(
+        "?integration=drillcodes&channel=channel_123&sourceOrigin=https%3A%2F%2Fcommunity.example",
+        true,
+      ),
+    ).toBeNull();
     expect(
       readDrillCodesIntegrationConfig(
         "?integration=drillcodes&channel=channel_123&sourceOrigin=http%3A%2F%2Fcommunity.example",
@@ -67,5 +68,11 @@ describe("DrillCodes integration protocol", () => {
       channel: "channel_123",
     });
     expect(isDrillCodesMessage(message, "channel_123")).toBe(true);
+  });
+
+  it("enforces the DrillCodes export size limit", () => {
+    expect(isValidDrillCodesExportCode("")).toBe(false);
+    expect(isValidDrillCodesExportCode("x".repeat(100_000))).toBe(true);
+    expect(isValidDrillCodesExportCode("x".repeat(100_001))).toBe(false);
   });
 });
