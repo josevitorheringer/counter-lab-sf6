@@ -75,6 +75,21 @@ describe("validation and normalization", () => {
     ).toThrow(/at most 10/);
   });
 
+  it("recognizes Arjun as dummy character 34", () => {
+    const document = normalizeDrill({
+      ...minimumDrill(),
+      compatibility: {
+        dummy_character_id: 34,
+        dummy_character_name: "Unknown (34)",
+      },
+    });
+
+    expect(document.compatibility).toMatchObject({
+      dummy_character_id: 34,
+      dummy_character_name: "Arjun",
+    });
+  });
+
   it("applies the minimum validation required by the mod", () => {
     expect(() => normalizeDrill({})).toThrow(/version/);
     expect(() =>

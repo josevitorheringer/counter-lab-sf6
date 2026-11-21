@@ -35,6 +35,7 @@ export const CHARACTERS: readonly Character[] = [
   { id: 31, name: "Alex" },
   { id: 32, name: "Ingrid" },
   { id: 33, name: "Yasmin" },
+  { id: 34, name: "Arjun" },
 ] as const;
 
 export function findCharacter(id: number): Character | undefined {

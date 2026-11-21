@@ -6,6 +6,7 @@ import type {
   ReversalSlots,
   SlotGuid,
 } from "./types";
+import { findCharacter } from "./characters";
 
 const SLOT_COUNT = 8;
 const REVERSAL_COUNT = 10;
@@ -130,16 +131,19 @@ function normalizeMetadata(value: Record<string, unknown>): Record<string, unkno
 
 function normalizeCompatibility(value: Record<string, unknown>): Record<string, unknown> {
   const compatibility = cloneRecord(value);
-  compatibility.dummy_character_id = requireInteger(
+  const dummyCharacterId = requireInteger(
     value.dummy_character_id,
     "compatibility.dummy_character_id",
     1,
   );
+  compatibility.dummy_character_id = dummyCharacterId;
   const dummyName = optionalString(
     value.dummy_character_name,
     "compatibility.dummy_character_name",
   );
-  if (dummyName !== undefined) compatibility.dummy_character_name = dummyName;
+  const knownCharacter = findCharacter(dummyCharacterId);
+  if (knownCharacter) compatibility.dummy_character_name = knownCharacter.name;
+  else if (dummyName !== undefined) compatibility.dummy_character_name = dummyName;
   if (value.player_character_id !== undefined) {
     compatibility.player_character_id = requireInteger(
       value.player_character_id,
